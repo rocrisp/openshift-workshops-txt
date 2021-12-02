@@ -1,62 +1,59 @@
-## Why an Operator?
+# ## Why an Operator?
 
-Operators make it easy to manage complex stateful applications on top of Kubernetes. However writing an Operator today can be difficult because of challenges such as using low level APIs, writing boilerplate, and a lack of modularity which leads to duplication.
+# Operators make it easy to manage complex stateful applications on top of Kubernetes. However writing an Operator today can be difficult because of challenges such as using low level APIs, writing boilerplate, and a lack of modularity which leads to duplication.
 
-## What is the Operator SDK?
+# ## What is the Operator SDK?
 
-The Operator SDK is a framework that uses the controller-runtime library to make writing Operators easier by providing:
+# The Operator SDK is a framework that uses the controller-runtime library to make writing Operators easier by providing:
 
-* High level APIs and abstractions to write the operational logic more intuitively.
-* Tools for scaffolding and code generation to bootstrap a new project fast.
-* Extensions to cover common Operator use cases.
+# * High level APIs and abstractions to write the operational logic more intuitively.
+# * Tools for scaffolding and code generation to bootstrap a new project fast.
+# * Extensions to cover common Operator use cases.
 
-## How do I use it?
+# ## How do I use it?
 
-The following is the workflow for a new **Go-based** Operator with the Operator SDK:
+# The following is the workflow for a new **Go-based** Operator with the Operator SDK:
 
-1. Create a new Operator project using the SDK CLI.
-2. Create a new Custom Resource Definition API Type using the SDK CLI.
-3. Add your Custom Resource Definition (CRD) to your live Kubernetes cluster.
-4. Define your Custom Resource Spec and Status.
-5. Create a new Controller for your Custom Resource Definition API.
-6. Write the reconciling logic for your Controller.
-7. Run the Operator locally to test your code against your live Kubernetes cluster.
-8. Add your Custom Resource (CR) to your live Kubernetes cluster and watch your Operator in action!
-9. After you are satisifed with your work, run some Makefile commands to build and generate the Operator Deployment manifests.
-10. Optionally add additional APIs and Controllers using the SDK CLI.
+# 1. Create a new Operator project using the SDK CLI.
+# 2. Create a new Custom Resource Definition API Type using the SDK CLI.
+# 3. Add your Custom Resource Definition (CRD) to your live Kubernetes cluster.
+# 4. Define your Custom Resource Spec and Status.
+# 5. Create a new Controller for your Custom Resource Definition API.
+# 6. Write the reconciling logic for your Controller.
+# 7. Run the Operator locally to test your code against your live Kubernetes cluster.
+# 8. Add your Custom Resource (CR) to your live Kubernetes cluster and watch your Operator in action!
+# 9. After you are satisifed with your work, run some Makefile commands to build and generate the Operator Deployment manifests.
+# 10. Optionally add additional APIs and Controllers using the SDK CLI.
 
-## PodSet Operator
+# ## PodSet Operator
 
-In this tutorial, we will create an Operator called a PodSet. A PodSet is a simple Controller/Operator that manages pods.
+# In this tutorial, we will create an Operator called a PodSet. A PodSet is a simple Controller/Operator that manages pods.
 
-A user provides a number of pods specified in `spec.replicas`. The PodSet also conveniently outputs the name of all Pods currently controlled by the PodSet in the `status.PodNames` field.
+# A user provides a number of pods specified in `spec.replicas`. The PodSet also conveniently outputs the name of all Pods currently controlled by the PodSet in the `status.PodNames` field.
 
-Let's begin!
-Let's begin by creating a new project called `myproject`:
-
+# Let's begin by creating a new project called `myproject`:
 oc new-project myproject
-Let's now create a new directory for our project:
 
+# Let's now create a new directory for our project:
 mkdir -p $HOME/projects/podset-operator
-Navigate to the directory:
 
+# Navigate to the directory:
 cd $HOME/projects/podset-operator
-Initialize a new Go-based Operator SDK project for the PodSet Operator:
 
+# Initialize a new Go-based Operator SDK project for the PodSet Operator:
 operator-sdk init --domain=example.com --repo=github.com/redhat/podset-operator
-
 operator-sdk create api --group=app --version=v1alpha1 --kind=PodSet --resource --controller
-We should now see the `/api`, `config`, and `/controllers` directories.Let's begin by inspecting the newly generated `api/v1alpha1/podset_types.go` file for our PodSet API:
 
+# We should now see the `/api`, `config`, and `/controllers` directories.Let's begin by inspecting the newly generated `api/v1alpha1/podset_types.go` file for our PodSet API:
 cat api/v1alpha1/podset_types.go
 
-In Kubernetes, every functional object (with some exceptions, i.e. ConfigMap) includes `spec` and `status`. Kubernetes functions by reconciling desired state (Spec) with the actual cluster state. We then record what is observed (Status). 
+# In Kubernetes, every functional object (with some exceptions, i.e. ConfigMap) includes `spec` and `status`. Kubernetes functions by reconciling desired state (Spec) with the actual cluster state. We then record what is observed (Status). 
 
-Also observe the `+kubebuilder` comment markers found throughout the file. `operator-sdk` makes use of a tool called [controler-gen](https://github.com/kubernetes-sigs/controller-tools) (from the [controller-tools](https://github.com/kubernetes-sigs/controller-tools) project) for generating utility code and Kubernetes YAML. More information on markers for config/code generation can be found [here](https://book.kubebuilder.io/reference/markers.html).
+# Also observe the `+kubebuilder` comment markers found throughout the file. `operator-sdk` makes use of a tool called [controler-gen](https://github.com/kubernetes-sigs/controller-tools) (from the [controller-tools](https://github.com/kubernetes-sigs/controller-tools) project) for generating utility code and Kubernetes YAML. More information on markers for config/code generation can be found [here](https://book.kubebuilder.io/reference/markers.html).
 
-Let's now modify the `PodSetSpec` and `PodSetStatus` of the `PodSet` Custom Resource (CR) at `api/v1alpha1/podset_types.go`
+# Let's now modify the `PodSetSpec` and `PodSetStatus` of the `PodSet` Custom Resource (CR) at `api/v1alpha1/podset_types.go`
 
-It should look like the file below:
+# It should look like the file below:
 
 <pre class="file">
 package v1alpha1
@@ -110,31 +107,30 @@ func init() {
 }
 </pre>
 
-You can easily update this file by running the following command:
-
+# You can easily update this file by running the following command:
 \cp /tmp/podset_types.go api/v1alpha1/podset_types.go
-After modifying the `*_types.go` file, always run the following command to update the `zz_generated.deepcopy.go` file:
 
+# After modifying the `*_types.go` file, always run the following command to update the `zz_generated.deepcopy.go` file:
 make generate
-Now we can run the `make manifests` command to generate our customized CRD and additional object YAMLs.
 
+# Now we can run the `make manifests` command to generate our customized CRD and additional object YAMLs.
 make manifests
-Thanks to our comment markers, observe that we now have a newly generated CRD yaml that reflects the `spec.replicas` and `status.podNames` OpenAPI v3 schema validation and customized print columns.
 
+# Thanks to our comment markers, observe that we now have a newly generated CRD yaml that reflects the `spec.replicas` and `status.podNames` OpenAPI v3 schema validation and customized print columns.
 cat config/crd/bases/app.example.com_podsets.yaml
-Deploy your PodSet Custom Resource Definition to the live OpenShift Cluster:
 
+# Deploy your PodSet Custom Resource Definition to the live OpenShift Cluster:
 oc apply -f config/crd/bases/app.example.com_podsets.yaml
-Confirm the CRD was successfully created:
 
+# Confirm the CRD was successfully created:
 oc get crd podsets.app.example.com -o yaml
-Let's now observe the default `controllers/podset_controller.go` file:
 
+# Let's now observe the default `controllers/podset_controller.go` file:
 cat controllers/podset_controller.go
 
-This default controller requires additional logic so we can trigger our reconciler whenever `kind: PodSet` objects are added, updated, or deleted. We also want to trigger the reconciler whenever Pods owned by a given PodSet are added, updated, and deleted as well. To accomplish this. we modify the controller's `SetupWithManager` method. 
+# This default controller requires additional logic so we can trigger our reconciler whenever `kind: PodSet` objects are added, updated, or deleted. We also want to trigger the reconciler whenever Pods owned by a given PodSet are added, updated, and deleted as well. To accomplish this. we modify the controller's `SetupWithManager` method. 
 
-Modify the PodSet controller logic at `controllers/podset_controller.go`:
+# Modify the PodSet controller logic at `controllers/podset_controller.go`:
 
 <pre class="file">
 /*
@@ -319,28 +315,27 @@ func (r *PodSetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 </pre>
 
-You can easily update this file by running the following command:
-
+# You can easily update this file by running the following command:
 \cp /tmp/podset_controller.go controllers/podset_controller.go
 
-`go mod tidy`  ensures that the go.mod file matches the source code in the module. It adds any missing module requirements necessary to build the current module's packages and dependencies, and it removes requirements on modules that don't provide any relevant packages. It also adds any missing entries to go.sum and removes unnecessary entries.
-
+# `go mod tidy`  ensures that the go.mod file matches the source code in the module. It adds any missing module requirements necessary to build the current module's packages and dependencies, and it removes requirements on modules that don't provide any relevant packages. It also adds any missing entries to go.sum and removes unnecessary entries.
 go mod tidy
 
-Once the CRD is registered, there are two ways to run the Operator:
+# Once the CRD is registered, there are two ways to run the Operator:
 
-* As a Pod inside a Kubernetes cluster
-* As a Go program outside the cluster using Operator-SDK. This is great for local development of your Operator.
+# * As a Pod inside a Kubernetes cluster
+# * As a Go program outside the cluster using Operator-SDK. This is great for local development of your Operator.
 
-For the sake of this tutorial, we will run the Operator as a Go program outside the cluster using Operator-SDK and our `kubeconfig` credentials
+# For the sake of this tutorial, we will run the Operator as a Go program outside the cluster using Operator-SDK and our `kubeconfig` credentials
 
-Once running, the command will block the current session. You can continue interacting with the OpenShift cluster by opening a new terminal window. You can quit the session by pressing `CTRL + C`.
+# Once running, the command will block the current session. You can continue interacting with the OpenShift cluster by opening a new terminal window. You can quit the session by pressing `CTRL + C`.
 
 WATCH_NAMESPACE=myproject make run
 
 cd $HOME/projects/podset-operator
 cat config/samples/app_v1alpha1_podset.yaml
-Ensure your `kind: PodSet` Custom Resource (CR) is updated with `spec.replicas`
+
+# Ensure your `kind: PodSet` Custom Resource (CR) is updated with `spec.replicas`
 
 <pre class="file">
 apiVersion: app.example.com/v1alpha1
@@ -351,55 +346,55 @@ spec:
   replicas: 3
 </pre>
 
-You can easily update this file by running the following command:
-
+# You can easily update this file by running the following command:
 \cp /tmp/app_v1alpha1_podset.yaml config/samples/app_v1alpha1_podset.yaml
-Ensure you are currently scoped to the `myproject` Namespace:
 
+# Ensure you are currently scoped to the `myproject` Namespace:
 oc project myproject
-Deploy your PodSet Custom Resource to the live OpenShift Cluster:
 
+# Deploy your PodSet Custom Resource to the live OpenShift Cluster:
 oc create -f config/samples/app_v1alpha1_podset.yaml
-Verify the Podset exists:
 
+# Verify the Podset exists:
 oc get podset
-Verify the PodSet operator has created 3 pods:
 
+# Verify the PodSet operator has created 3 pods:
 oc get pods
-Verify that status shows the name of the pods currently owned by the PodSet:
 
+# Verify that status shows the name of the pods currently owned by the PodSet:
 oc get podset podset-sample -o yaml
-Increase the number of replicas owned by the PodSet:
 
+# Increase the number of replicas owned by the PodSet:
 oc patch podset podset-sample --type='json' -p '[{"op": "replace", "path": "/spec/replicas", "value":5}]'
 
-Verify that we now have 5 running pods
+# Verify that we now have 5 running pods
 oc get pods
-Our PodSet controller creates pods containing OwnerReferences in their `metadata` section. This ensures they will be removed upon deletion of the `podset-sample` CR.
 
-Observe the OwnerReference set on a Podset's pod:
+# Our PodSet controller creates pods containing OwnerReferences in their `metadata` section. This ensures they will be removed upon deletion of the `podset-sample` CR.
 
+# Observe the OwnerReference set on a Podset's pod:
 oc get pods -o yaml | grep ownerReferences -A10
-Delete the podset-sample Custom Resource:
 
+# Delete the podset-sample Custom Resource:
 oc delete podset podset-sample
 
-Thanks to OwnerReferences, all of the pods should be deleted:
-
+# Thanks to OwnerReferences, all of the pods should be deleted:
 oc get pods
-Information, check out the links below:
 
-## Git Hub
- * Operator-Framework: https://github.com/operator-framework
- * Operator-SDK: https://github.com/operator-framework/operator-sdk/
 
-## YouTube
-* Tutorial: Deep Dive into the Operator Framework: https://www.youtube.com/watch?v=8_DaCcRMp5I&t=1220s
+# Information, check out the links below:
 
-## Samples
-* Sample Operators using Go: https://github.com/operator-framework/operator-sdk-samples/tree/master/go
+# ## Git Hub
+#  * Operator-Framework: https://github.com/operator-framework
+#  * Operator-SDK: https://github.com/operator-framework/operator-sdk/
 
-## Chat
-* Kubernetes Slack Chat (upstream): #kubernetes-operators at https://kubernetes.slack.com/
-* Operator-Framework on Google Groups: https://groups.google.com/forum/#!forum/operator-framework
-* OpenShift Operators Special Interest Group (SIG): https://commons.openshift.org/sig/OpenshiftOperators.html
+# ## YouTube
+# * Tutorial: Deep Dive into the Operator Framework: https://www.youtube.com/watch?v=8_DaCcRMp5I&t=1220s
+
+# ## Samples
+# * Sample Operators using Go: https://github.com/operator-framework/operator-sdk-samples/tree/master/go
+
+# ## Chat
+# * Kubernetes Slack Chat (upstream): #kubernetes-operators at https://kubernetes.slack.com/
+# * Operator-Framework on Google Groups: https://groups.google.com/forum/#!forum/operator-framework
+# * OpenShift Operators Special Interest Group (SIG): https://commons.openshift.org/sig/OpenshiftOperators.html
