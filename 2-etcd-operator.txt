@@ -203,6 +203,8 @@ oc create -f etcd-operator-cr.yaml
 # Verify the cluster object was created:
 oc get etcdclusters
 
+#Open another terminal.
+
 # Watch the pods in the Etcd cluster get created:
 oc get pods -l etcd_cluster=example-etcd-cluster -w
 
